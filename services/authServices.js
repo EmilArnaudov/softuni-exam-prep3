@@ -28,7 +28,7 @@ async function login(username, password) {
 
 async function createToken(user) {
     let payload = {
-        id: user._id,
+        _id: user._id,
         username: user.username,
         name: user.name,
     }
