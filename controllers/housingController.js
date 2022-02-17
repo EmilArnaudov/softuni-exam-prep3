@@ -2,6 +2,8 @@ const router = require('express').Router();
 const { createHousing } = require('../services/housingServices');
 const { getHousingDetails } = require('../services/housingServices');
 const { editHousing } = require('../services/housingServices');
+const { deleteHousing } = require('../services/housingServices');
+const { joinHousing } = require('../services/housingServices');
 const createErrorMessage = require('../utils/errorMessage');
 const Housing = require('../models/Housing');
 
@@ -17,6 +19,29 @@ router.get('/details/:id', async (req, res) => {
     let [housing, user] = await getHousingDetails(housingId, userData);
 
     return res.render('details', {housing, user})
+})
+
+router.get('/rent/:id', async (req, res) => {
+    const userId = req.user._id;
+    const housingId = req.params.id;
+
+    try {
+        await joinHousing(userId, housingId);
+        return res.redirect(`/housing/details/${housingId}`);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+router.get('/delete/:id', async (req, res) => {
+    const housingId = req.params.id;
+
+    try {
+        await deleteHousing(housingId)
+        return res.redirect('/housing/all');
+    } catch (error) {
+        return res.redirect('/housing/all');
+    }
 })
 
 router.get('/edit/:id', async (req, res) => {
@@ -53,7 +78,7 @@ router.post('/create', async (req, res) => {
     housingData.owner = req.user._id
 
     try {
-        let housing = await createHousing(housingData);;
+        let housing = await createHousing(housingData);
         return res.redirect('/housing/all');
     } catch (error) {
         let errorMessages = createErrorMessage(Object.keys(error.errors));

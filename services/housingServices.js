@@ -15,11 +15,15 @@ async function editHousing(data) {
     return Housing.updateOne({_id: _id}, {name, type, year, city, image, description, availablePieces}, {runValidators: true});
 } 
 
+async function joinHousing(userId, housingId){
+    return Housing.findOneAndUpdate({_id: housingId}, {$push: {tenants: userId}, $inc: {availablePieces: -1}}, {runValidators: true});
+
+}
+
 async function getHousingDetails(housingId, user) {
 
     let housing = await Housing.findById(housingId).lean();
     housing.hasTenants = housing.tenants.length > 0;
-    
 
     if (housing.hasTenants) {
         housing.tenants = housing.tenants.map(x => x.toString());
@@ -29,7 +33,7 @@ async function getHousingDetails(housingId, user) {
     }
 
     if (!user) {
-        return housing;
+        return [housing, null];
     }
 
     user.isCreator = false;
@@ -46,8 +50,15 @@ async function getHousingDetails(housingId, user) {
     return [housing, user]
 }  
 
+async function deleteHousing(housingId) {
+    return Housing.findByIdAndDelete(housingId);
+}
+
+    
 module.exports = {
     createHousing,
     getHousingDetails,
     editHousing,
+    deleteHousing,
+    joinHousing,
 }
